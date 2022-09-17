@@ -27,11 +27,33 @@ def level1():
             return True
         else:
             return False
-        
+    
+    def laser_scan(car, track, side):
+        # 0 is left, 1 is right
+        # Direction is counter clockwise
+        step_size = 1
+        if side == 0:
+            angle = (car.direction+90) % 360
+            angle = np.deg2rad(angle)
+        elif side == 1:
+            angle = (car.direction-90) % 360
+            angle = np.deg2rad(angle)
+        else:
+            print("Error: side must be 0 or 1")
+            return None
+
+        laser = [car.position[0], car.position[1]]
+        while True:
+            if track[int(laser[1]), int(laser[0])] == 0:
+                break
+            laser[0] -= (math.sin(angle) * step_size)
+            laser[1] -= (math.cos(angle) * step_size)
+        dist = np.linalg.norm(np.array(car.position) - np.array(laser))
+        return laser, dist
 
     class CarSprite(pygame.sprite.Sprite):
-        MAX_FORWARD_SPEED = 10
-        MAX_REVERSE_SPEED = 10
+        MAX_FORWARD_SPEED = 5
+        MAX_REVERSE_SPEED = 5
         ACCELERATION = 2
         TURN_SPEED = 10
 
@@ -40,8 +62,7 @@ def level1():
             track = cv.imread("images/oval_track_v1.png", cv.IMREAD_GRAYSCALE)
 
             self.src_image = pygame.image.load(image)
-            self.position = (80, track.shape[0]/2)
-            # self.position = position
+            self.position = position
             self.speed = self.direction = 0
             self.k_left = self.k_right = self.k_down = self.k_up = 0
         
@@ -64,16 +85,26 @@ def level1():
 
     # CREATE A CAR AND RUN
     rect = screen.get_rect()
-    car = CarSprite('images/car.png', (10, 730))
+    car = CarSprite('images/car.png', (80, track.shape[0]/2))
     car_group = pygame.sprite.RenderPlain(car)
-
+    left_range = 50
+    right_range = 50
     #THE GAME LOOP
     while 1:
+        # Attempting to self drive! Not working at all!
+        step_size = 0.1
+        deltat = clock.tick(30)
+        car.k_up = 0.1
+        if left_range > right_range:
+            car.k_right += step_size
+            car.k_left -= step_size
+        elif left_range < right_range:
+            car.k_right -= step_size
+            car.k_left += step_size
+        
         #USER INPUT
         t1 = time.time()
         dt = t1-t0
-
-        deltat = clock.tick(30)
         for event in pygame.event.get():
             if not hasattr(event, 'key'): continue
             down = event.type == KEYDOWN 
@@ -107,6 +138,10 @@ def level1():
             car.k_right = 0
             car.k_left = 0
 
+        left_hit, left_range = laser_scan(car, track, 0)
+        right_hit, right_range = laser_scan(car, track, 1)
+        # print(round(left_range,0), round(right_range,0))
+        pygame.draw.line(screen, (255, 0, 0), (left_hit[0], left_hit[1]), (right_hit[0], right_hit[1]), width=3)
         car_group.draw(screen)
         screen.blit(win_text, (250, 700))
         screen.blit(loss_text, (250, 700))
