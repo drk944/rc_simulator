@@ -85,7 +85,7 @@ def level1():
 
     # CREATE A CAR AND RUN
     rect = screen.get_rect()
-    car = CarSprite('images/car.png', (80, track.shape[0]/2))
+    car = CarSprite('images/car_orientation1.png', (80, track.shape[0]/2))
     car_group = pygame.sprite.RenderPlain(car)
     left_range = 50
     right_range = 50

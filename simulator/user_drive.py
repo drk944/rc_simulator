@@ -85,7 +85,7 @@ def level1():
 
     # CREATE A CAR AND RUN
     rect = screen.get_rect()
-    car = CarSprite('images/car.png', (80, track.shape[0]/2))
+    car = CarSprite('images/car_orientation1.png', (80, track.shape[0]/2))
     car_group = pygame.sprite.RenderPlain(car)
 
     #THE GAME LOOP
@@ -130,7 +130,7 @@ def level1():
 
         left_hit, left_range = laser_scan(car, track, 0)
         right_hit, right_range = laser_scan(car, track, 1)
-        print(round(left_range,0), round(right_range,0))
+        # print(round(left_range,0), round(right_range,0))
         pygame.draw.line(screen, (255, 0, 0), (left_hit[0], left_hit[1]), (right_hit[0], right_hit[1]), width=3)
         car_group.draw(screen)
         screen.blit(win_text, (250, 700))

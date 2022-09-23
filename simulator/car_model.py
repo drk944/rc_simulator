@@ -42,8 +42,8 @@ class Game:
         # width = 1280
         # height = 720
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.track = cv.imread(current_dir+"\images\oval_track_v1.png", cv.IMREAD_GRAYSCALE)
-        self.bg = pygame.image.load(current_dir+"\images\oval_track_v1.png")
+        self.track = cv.imread(os.path.join(current_dir,"images", "oval_track_v1.png"), cv.IMREAD_GRAYSCALE)
+        self.bg = pygame.image.load(os.path.join(current_dir,"images", "oval_track_v1.png"))
         self.screen = pygame.display.set_mode((self.track.shape[1], self.track.shape[0]))
         # self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
@@ -51,13 +51,17 @@ class Game:
         self.exit = False
 
     def check_collision(self,car, track):
-        mask_array = track[car.rect[1]:car.rect[1]+car.rect[3],car.rect[0]:car.rect[0]+car.rect[2]]
-        num_zeroes = np.count_nonzero(mask_array==0)
-        if num_zeroes > np.prod(mask_array.shape)*0.25:
-        # if 0 in mask_array:
-            return True
-        else:
-            return False
+        carx, cary = car.position
+        return track[int(cary), int(carx)] == 0
+        
+        # mask_array = track[car.rect[1]:car.rect[1]+car.rect[3],car.rect[0]:car.rect[0]+car.rect[2]]
+        # num_zeroes = np.count_nonzero(mask_array==0)
+        # if num_zeroes > np.prod(mask_array.shape)*0.25:
+        # # if 0 in mask_array:
+        #     return True
+        # else:
+        #     return False
+        
     
     def laser_scan(self,car, track, side):
         # 0 is left, 1 is right
@@ -84,7 +88,7 @@ class Game:
 
     def run(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        image_path = os.path.join(current_dir, "images\car.png")
+        image_path = os.path.join(current_dir, os.path.join("images", "car.png"))
         
         # screen = pygame.display.set_mode((track.shape[1], track.shape[0]))
         car_image = pygame.image.load(image_path)
@@ -138,16 +142,16 @@ class Game:
             # Logic
             car.update(dt)
 
-            # collisions = self.check_collision(car, self.track)
+            collisions = self.check_collision(car, self.track)
             
-            # if collisions == True:
-            #     win_condition = False
-            #     # timer_text = font.render("Crash!", True, (255,0,0))
-            #     car.image = pygame.image.load('images/collision.png')
-            #     # loss_text = win_font.render('Press Space to Retry', True, (255,0,0))
-            #     self.exit= True
-            #     print("crashed")
-            #     car.velocity.x = 0
+            if collisions == True:
+                win_condition = False
+                # timer_text = font.render("Crash!", True, (255,0,0))
+                car.image = pygame.image.load(os.path.join('images', 'collision.png'))
+                # loss_text = win_font.render('Press Space to Retry', True, (255,0,0))
+                self.exit= True
+                print("crashed")
+                car.velocity.x = 0
 
             left_hit, left_range = self.laser_scan(car, self.track, 0)
             right_hit, right_range = self.laser_scan(car, self.track, 1)
@@ -156,7 +160,7 @@ class Game:
             # Drawing
             self.screen.blit(self.bg, (0, 0))
             # self.screen.fill((0, 0, 0))
-            print(car.position)
+            # print(car.position)
             pygame.draw.line(self.screen, (255, 0, 0), (left_hit[0], left_hit[1]), (right_hit[0], right_hit[1]), width=5)
             rotated = pygame.transform.rotate(car_image, car.angle)
             rect = rotated.get_rect()
